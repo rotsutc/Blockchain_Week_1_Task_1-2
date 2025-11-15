@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔗 Blockchain Demo - Proof of Work</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1e293b;
+            --dark-light: #334155;
+            --gray: #64748b;
+            --light: #f1f5f9;
+            --white: #ffffff;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem 0;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .logo i {
+            font-size: 2rem;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0 2rem;
+            border-bottom: 2px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .nav-tab {
+            padding: 1rem 2rem;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-tab:hover {
+            color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .nav-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 4rem 0;
+            text-align: center;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card p {
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 3rem 0;
+        }
+
+        .card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--light);
+        }
+
+        .card-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.75rem;
+            color: var(--dark);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .badge-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .badge-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid var(--light);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.875rem 1.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Difficulty Selector */
+        .difficulty-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .difficulty-option {
+            position: relative;
+        }
+
+        .difficulty-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .difficulty-label {
+            display: block;
+            padding: 1rem;
+            border: 2px solid var(--light);
+            border-radius: 0.75rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .difficulty-option input[type="radio"]:checked + .difficulty-label {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .difficulty-label:hover {
+            border-color: var(--primary);
+        }
+
+        .difficulty-label strong {
+            display: block;
+            font-size: 1.25rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .difficulty-label span {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        /* Blockchain Visualization */
+        .blockchain-container {
+            margin-top: 2rem;
+        }
+
+        .block {
+            background: white;
+            border: 2px solid var(--light);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .block:hover {
+            box-shadow: var(--shadow);
+            transform: translateY(-2px);
+        }
+
+        .block::after {
+            content: '↓';
+            position: absolute;
+            bottom: -2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2rem;
+            color: var(--gray);
+        }
+
+        .block:last-child::after {
+            display: none;
+        }
+
+        .block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--light);
+        }
+
+        .block-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .block-index {
+            background: var(--gradient);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-weight: 600;
+        }
+
+        .block-info {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .block-info-item {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .block-info-label {
+            font-weight: 600;
+            color: var(--gray);
+            min-width: 120px;
+        }
+
+        .block-info-value {
+            font-family: 'Courier New', monospace;
+            color: var(--dark);
+            word-break: break-all;
+        }
+
+        .hash {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid var(--success);
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid var(--danger);
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 4px solid var(--primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .difficulty-selector {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Hide sections initially */
+        #blockchainSection {
+            display: none;
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Footer */
+        .footer {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem 0;
+            margin-top: 4rem;
+            text-align: center;
+            color: var(--gray);
+        }
+
+        .footer p {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* History List */
+        .history-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .history-item {
+            background: var(--light);
+            border: 2px solid transparent;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .history-item:hover {
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .history-info h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--dark);
+        }
+
+        .history-info p {
+            margin: 0;
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+            color: var(--gray);
+            font-size: 1rem;
+        }
+
+        .btn-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .btn-icon.load:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-icon.delete:hover {
+            background: var(--danger);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-cubes"></i>
+                    <span>Blockchain Demo</span>
+                </div>
+                <div id="chainStatus"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+        <button class="nav-tab active" onclick="switchTab('blockchain')">
+            <i class="fas fa-cubes"></i> Blockchain
+        </button>
+        <button class="nav-tab" onclick="switchTab('comparison')">
+            <i class="fas fa-chart-bar"></i> So sánh Hash Algorithms
+        </button>
+    </nav>
+
+    <!-- Blockchain Tab Content -->
+    <div id="blockchainTab" class="tab-content active">
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>🔐 Blockchain</h1>
+            <p>Trải nghiệm công nghệ blockchain với giao diện trực quan và dễ sử dụng</p>
+            
+            <div class="hero-stats">
+                <div class="stat-card">
+                    <h3><i class="fas fa-shield-alt"></i></h3>
+                    <p>Bảo mật tuyệt đối với SHA-256</p>
+                </div>
+                <div class="stat-card">
+                    <h3><i class="fas fa-link"></i></h3>
+                    <p>Liên kết blocks không thể phá vỡ</p>
+                </div>
+                <div class="stat-card">
+                    <h3><i class="fas fa-check-circle"></i></h3>
+                    <p>Validation tự động</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Create Blockchain Section -->
+            <div class="card fade-in" id="createSection">
+                <div class="card-header">
+                    <h2><i class="fas fa-plus-circle"></i> Tạo Blockchain Mới</h2>
+                </div>
+                
+                <div class="form-group">
+                    <label>Chọn thuật toán Hash:</label>
+                    <div class="difficulty-selector">
+                        <div class="difficulty-option">
+                            <input type="radio" id="hash_sha256" name="hash_algorithm" value="sha256" checked>
+                            <label for="hash_sha256" class="difficulty-label">
+                                <strong>SHA-256</strong>
+                            </label>
+                        </div>
+                        <div class="difficulty-option">
+                            <input type="radio" id="hash_sha512" name="hash_algorithm" value="sha512">
+                            <label for="hash_sha512" class="difficulty-label">
+                                <strong>SHA-512</strong>
+                            </label>
+                        </div>
+                        <div class="difficulty-option">
+                            <input type="radio" id="hash_sha3_256" name="hash_algorithm" value="sha3-256">
+                            <label for="hash_sha3_256" class="difficulty-label">
+                                <strong>SHA3-256</strong>
+                            </label>
+                        </div>
+                        <div class="difficulty-option">
+                            <input type="radio" id="hash_sha3_512" name="hash_algorithm" value="sha3-512">
+                            <label for="hash_sha3_512" class="difficulty-label">
+                                <strong>SHA3-512</strong>
+                            </label>
+                        </div>
+                        <div class="difficulty-option">
+                            <input type="radio" id="hash_blake2b" name="hash_algorithm" value="blake2b">
+                            <label for="hash_blake2b" class="difficulty-label">
+                                <strong>BLAKE2b</strong>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Chọn độ khó (Difficulty) cho Proof-of-Work:</label>
+                    <div class="difficulty-selector">
+                        <div class="difficulty-option">
+                            <input type="radio" id="diff2" name="difficulty" value="2">
+                            <label for="diff2" class="difficulty-label">
+                                <strong>2</strong>
+                                <span>Dễ - Nhanh</span>
+                            </label>
+                        </div>
+                        <div class="difficulty-option">
+                            <input type="radio" id="diff3" name="difficulty" value="3" checked>
+                            <label for="diff3" class="difficulty-label">
+                                <strong>3</strong>
+                                <span>Trung bình</span>
+                            </label>
+                        </div>
+                        <div class="difficulty-option">
+                            <input type="radio" id="diff4" name="difficulty" value="4">
+                            <label for="diff4" class="difficulty-label">
+                                <strong>4</strong>
+                                <span>Khó</span>
+                            </label>
+                        </div>
+                        <div class="difficulty-option">
+                            <input type="radio" id="diff5" name="difficulty" value="5">
+                            <label for="diff5" class="difficulty-label">
+                                <strong>5</strong>
+                                <span>Rất khó</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="createBlockchain()">
+                    <i class="fas fa-rocket"></i> Tạo Blockchain
+                </button>
+
+                <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid var(--light);">
+                    <h3 style="margin-bottom: 1rem; color: var(--dark);"><i class="fas fa-history"></i> Lịch sử Blockchain đã lưu</h3>
+                    <button class="btn btn-outline" onclick="loadHistory()" style="margin-bottom: 1rem;">
+                        <i class="fas fa-sync"></i> Tải lịch sử
+                    </button>
+                    <div id="historyList"></div>
+                </div>
+            </div>
+
+            <!-- Blockchain Management Section -->
+            <div id="blockchainSection">
+                <!-- Add Block Card -->
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <h2><i class="fas fa-cube"></i> Thêm Block Mới</h2>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="blockData">Dữ liệu cho block:</label>
+                        <input type="text" id="blockData" class="form-control" placeholder="Nhập dữ liệu (ví dụ: Transaction, Message, etc.)">
+                    </div>
+
+                    <button class="btn btn-primary" onclick="addBlock()" id="addBlockBtn">
+                        <i class="fas fa-plus"></i> Thêm Block & Mine
+                    </button>
+                </div>
+
+                <!-- Actions Card -->
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <h2><i class="fas fa-cog"></i> Hành động</h2>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button class="btn btn-success" onclick="validateChain()">
+                            <i class="fas fa-check-double"></i> Validate Chain
+                        </button>
+                        <button class="btn btn-danger" onclick="demoTampering()">
+                            <i class="fas fa-exclamation-triangle"></i> Demo Tampering
+                        </button>
+                        <button class="btn btn-outline" onclick="refreshChain()">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                        <button class="btn btn-outline" onclick="showSaveDialog()">
+                            <i class="fas fa-save"></i> Lưu Blockchain
+                        </button>
+                        <button class="btn btn-outline" onclick="resetBlockchain()" style="border-color: var(--danger); color: var(--danger);">
+                            <i class="fas fa-redo"></i> Reset & Chọn lại độ khó
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Save Dialog (Hidden) -->
+                <div id="saveDialog" style="display: none;">
+                    <div class="card fade-in" style="border: 2px solid var(--primary);">
+                        <div class="card-header">
+                            <h2><i class="fas fa-save"></i> Lưu Blockchain</h2>
+                        </div>
+                        <div class="form-group">
+                            <label for="blockchainName">Tên blockchain:</label>
+                            <input type="text" id="blockchainName" class="form-control" placeholder="Nhập tên để dễ nhớ (ví dụ: My First Blockchain)">
+                        </div>
+                        <div style="display: flex; gap: 1rem;">
+                            <button class="btn btn-primary" onclick="saveBlockchain()">
+                                <i class="fas fa-check"></i> Lưu
+                            </button>
+                            <button class="btn btn-outline" onclick="hideSaveDialog()">
+                                <i class="fas fa-times"></i> Hủy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alert Area -->
+                <div id="alertArea"></div>
+
+                <!-- Blockchain Visualization -->
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <h2><i class="fas fa-cubes"></i> Blockchain</h2>
+                        <div id="chainInfo"></div>
+                    </div>
+                    
+                    <div class="blockchain-container" id="blockchainContainer">
+                        <!-- Blocks will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p><strong>Blockchain với Proof-of-Work</strong></p>
+            <p>Môn học: Blockchain và Ứng dụng | Năm 2025</p>
+        </div>
+    </footer>
+    </div>
+
+    <!-- Hash Comparison Tab Content -->
+    <div id="comparisonTab" class="tab-content">
+        <!-- Hero Section for Comparison -->
+        <section class="hero">
+            <div class="container">
+                <h1>🔐 So sánh Hash Algorithms</h1>
+                <p>Khám phá sự khác biệt giữa các thuật toán mã hóa khác nhau</p>
+            </div>
+        </section>
+
+        <main class="main-content">
+            <div class="container">
+                <!-- Performance Comparison -->
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <h2><i class="fas fa-chart-bar"></i> So sánh Hiệu suất Mining</h2>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Chọn độ khó để test:</label>
+                        <div class="difficulty-selector">
+                            <div class="difficulty-option">
+                                <input type="radio" id="test_diff2" name="test_difficulty" value="2">
+                                <label for="test_diff2" class="difficulty-label">
+                                    <strong>2</strong>
+                                    <span>Dễ - Nhanh</span>
+                                </label>
+                            </div>
+                            <div class="difficulty-option">
+                                <input type="radio" id="test_diff3" name="test_difficulty" value="3" checked>
+                                <label for="test_diff3" class="difficulty-label">
+                                    <strong>3</strong>
+                                    <span>Trung bình</span>
+                                </label>
+                            </div>
+                            <div class="difficulty-option">
+                                <input type="radio" id="test_diff4" name="test_difficulty" value="4">
+                                <label for="test_diff4" class="difficulty-label">
+                                    <strong>4</strong>
+                                    <span>Khó</span>
+                                </label>
+                            </div>
+                            <div class="difficulty-option">
+                                <input type="radio" id="test_diff5" name="test_difficulty" value="5">
+                                <label for="test_diff5" class="difficulty-label">
+                                    <strong>5</strong>
+                                    <span>Rất khó</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-bottom: 1.5rem;">
+                        <button onclick="runPerformanceTest()" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
+                            <i class="fas fa-play"></i> Chạy Test
+                        </button>
+                    </div>
+                    
+                    <div id="performanceLoading" style="text-align: center; padding: 2rem; display: none;">
+                        <span class="loading"></span>
+                        <p style="margin-top: 1rem;">Đang chạy test mining với các thuật toán...</p>
+                    </div>
+
+                    <div id="performanceResults" style="display: none;">
+                        <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                            <h3 id="chartTitle" style="text-align: center; margin-bottom: 1rem; color: var(--primary);"></h3>
+                            <canvas id="performanceChart" style="max-height: 400px;"></canvas>
+                        </div>
+                        
+                        <div id="algorithmCards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                            <!-- Algorithm cards will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collision Resistance Test -->
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <h2><i class="fas fa-shield-alt"></i> Test Collision Resistance</h2>
+                        <button onclick="runCollisionTest()" class="btn btn-primary">
+                            <i class="fas fa-play"></i> Chạy Test
+                        </button>
+                    </div>
+                    
+                    <div id="collisionLoading" style="text-align: center; padding: 2rem; display: none;">
+                        <span class="loading"></span>
+                        <p style="margin-top: 1rem;">Đang test collision resistance...</p>
+                    </div>
+
+                    <div id="collisionResults" style="display: none;">
+                        <div style="background: var(--light); padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                            <h3 style="margin-bottom: 1rem;">📝 Giải thích Avalanche Effect:</h3>
+                            <p>Thay đổi nhỏ trong input (thêm 1 ký tự !) sẽ tạo ra hash hoàn toàn khác. Đây là đặc tính quan trọng của hash function bảo mật.</p>
+                        </div>
+                        <div id="collisionResultsContent">
+                            <!-- Collision test results will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Algorithm Information -->
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <h2><i class="fas fa-info-circle"></i> Thông tin Algorithms</h2>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                        <div style="background: var(--light); padding: 1.5rem; border-radius: 0.5rem;">
+                            <h3 style="color: var(--primary); margin-bottom: 1rem;">🔸 SHA-256</h3>
+                            <p><strong>Độ dài:</strong> 256 bits (64 hex chars)</p>
+                            <p><strong>Ứng dụng:</strong> Bitcoin, SSL certificates</p>
+                            <p><strong>Đặc điểm:</strong> Tiêu chuẩn công nghiệp, cân bằng tốc độ và bảo mật</p>
+                        </div>
+
+                        <div style="background: var(--light); padding: 1.5rem; border-radius: 0.5rem;">
+                            <h3 style="color: var(--primary); margin-bottom: 1rem;">🔹 SHA-512</h3>
+                            <p><strong>Độ dài:</strong> 512 bits (128 hex chars)</p>
+                            <p><strong>Ứng dụng:</strong> High-security applications</p>
+                            <p><strong>Đặc điểm:</strong> Bảo mật cao hơn SHA-256, chậm hơn một chút</p>
+                        </div>
+
+                        <div style="background: var(--light); padding: 1.5rem; border-radius: 0.5rem;">
+                            <h3 style="color: var(--primary); margin-bottom: 1rem;">🔷 SHA3-256</h3>
+                            <p><strong>Độ dài:</strong> 256 bits (64 hex chars)</p>
+                            <p><strong>Ứng dụng:</strong> Ethereum (Keccak), modern crypto</p>
+                            <p><strong>Đặc điểm:</strong> Cấu trúc khác SHA-2, kháng tấn công tốt hơn</p>
+                        </div>
+
+                        <div style="background: var(--light); padding: 1.5rem; border-radius: 0.5rem;">
+                            <h3 style="color: var(--primary); margin-bottom: 1rem;">🔶 SHA3-512</h3>
+                            <p><strong>Độ dài:</strong> 512 bits (128 hex chars)</p>
+                            <p><strong>Ứng dụng:</strong> High-security SHA-3 applications</p>
+                            <p><strong>Đặc điểm:</strong> Bảo mật cao nhất trong SHA-3 family</p>
+                        </div>
+
+                        <div style="background: var(--light); padding: 1.5rem; border-radius: 0.5rem;">
+                            <h3 style="color: var(--primary); margin-bottom: 1rem;">⚡ BLAKE2b</h3>
+                            <p><strong>Độ dài:</strong> 512 bits (128 hex chars)</p>
+                            <p><strong>Ứng dụng:</strong> Performance-critical systems</p>
+                            <p><strong>Đặc điểm:</strong> Nhanh nhất, bảo mật tốt, thay thế MD5/SHA-1</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="container">
+                <p><strong>Hash Algorithm Comparison</strong></p>
+                <p>Môn học: Blockchain và Ứng dụng | Năm 2025</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        let sessionId = null;
+
+        // Load history on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            loadHistory();
+        });
+
+        async function createBlockchain() {
+            const difficulty = document.querySelector('input[name="difficulty"]:checked').value;
+            const hashAlgorithm = document.querySelector('input[name="hash_algorithm"]:checked').value;
+            
+            try {
+                const response = await fetch('/create-blockchain', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        difficulty: parseInt(difficulty),
+                        hash_algorithm: hashAlgorithm
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    sessionId = data.session_id;
+                    document.getElementById('createSection').style.display = 'none';
+                    document.getElementById('blockchainSection').style.display = 'block';
+                    
+                    showAlert('success', `✓ Blockchain đã được tạo! ${hashAlgorithm.toUpperCase()}, Difficulty = ${difficulty}`);
+                    updateChainStatus(data.chain_info);
+                    refreshChain();
+                } else {
+                    showAlert('danger', '✗ Lỗi: ' + data.error);
+                }
+            } catch (error) {
+                showAlert('danger', '✗ Lỗi kết nối: ' + error.message);
+            }
+        }
+
+        async function addBlock() {
+            const blockData = document.getElementById('blockData').value.trim();
+            
+            if (!blockData) {
+                showAlert('danger', '⚠️ Vui lòng nhập dữ liệu cho block!');
+                return;
+            }
+
+            const btn = document.getElementById('addBlockBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Mining...';
+
+            try {
+                const response = await fetch('/add-block', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        data: blockData
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('success', `✓ Block đã được mine thành công! (${data.mining_time}s, Nonce: ${data.block.nonce.toLocaleString()})`);
+                    document.getElementById('blockData').value = '';
+                    updateChainStatus(data.chain_info);
+                    refreshChain();
+                } else {
+                    showAlert('danger', '✗ Lỗi: ' + data.error);
+                }
+            } catch (error) {
+                showAlert('danger', '✗ Lỗi kết nối: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-plus"></i> Thêm Block & Mine';
+            }
+        }
+
+        async function refreshChain() {
+            if (!sessionId) return;
+
+            try {
+                const response = await fetch(`/get-chain/${sessionId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    displayBlockchain(data.chain);
+                    updateChainStatus(data.chain_info);
+                }
+            } catch (error) {
+                showAlert('danger', '✗ Lỗi kết nối: ' + error.message);
+            }
+        }
+
+        async function validateChain() {
+            if (!sessionId) return;
+
+            try {
+                const response = await fetch(`/validate-chain/${sessionId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    if (data.is_valid) {
+                        showAlert('success', '✓ Blockchain is completely VALID! Tất cả blocks đều hợp lệ.');
+                    } else {
+                        showAlert('danger', '✗ Blockchain is INVALID! Phát hiện giả mạo.');
+                    }
+                }
+            } catch (error) {
+                showAlert('danger', '✗ Lỗi kết nối: ' + error.message);
+            }
+        }
+
+        async function demoTampering() {
+            if (!sessionId) return;
+
+            try {
+                const response = await fetch('/tamper-block', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        block_index: 1
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('warning', `⚠️ ${data.message}`);
+                    
+                    // Refresh blockchain để hiển thị blocks đã bị tamper
+                    await refreshChain();
+                    
+                    // Cập nhật chain status
+                    updateChainStatus(data.chain_info);
+                }
+            } catch (error) {
+                showAlert('danger', '✗ Lỗi kết nối: ' + error.message);
+            }
+        }
+
+        function showSaveDialog() {
+            document.getElementById('saveDialog').style.display = 'block';
+            document.getElementById('blockchainName').focus();
+        }
+
+        function hideSaveDialog() {
+            document.getElementById('saveDialog').style.display = 'none';
+            document.getElementById('blockchainName').value = '';
+        }
+
+        async function saveBlockchain() {
+            if (!sessionId) return;
+
+            const name = document.getElementById('blockchainName').value.trim();
+            if (!name) {
+                showAlert('danger', '⚠️ Vui lòng nhập tên cho blockchain!');
+                return;
+            }
+
+            try {
+                const response = await fetch('/save-blockchain', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        name: name
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('success', `✓ ${data.message}`);
+                    hideSaveDialog();
+                    loadHistory();
+                } else {
+                    showAlert('danger', '✗ Lỗi: ' + data.error);
+                }
+            } catch (error) {
+                showAlert('danger', '✗ Lỗi kết nối: ' + error.message);
+            }
+        }
+
+        async function loadHistory() {
+            try {
+                const response = await fetch('/get-history');
+                const data = await response.json();
+
+                if (data.success) {
+                    displayHistory(data.history);
+                }
+            } catch (error) {
+                console.error('Error loading history:', error);
+            }
+        }
+
+        function displayHistory(history) {
+            const container = document.getElementById('historyList');
+            
+            if (history.length === 0) {
+                container.innerHTML = '<p style="color: var(--gray); font-style: italic;">Chưa có blockchain nào được lưu.</p>';
+                return;
+            }
+
+            container.innerHTML = '<div class="history-list">' + history.map(item => `
+                <div class="history-item">
+                    <div class="history-info">
+                        <h4><i class="fas fa-database"></i> ${item.name}</h4>
+                        <p>📅 ${new Date(item.timestamp).toLocaleString('vi-VN')} | 
+                           🔐 ${(item.hash_algorithm || 'sha256').toUpperCase()} |
+                           🔧 Difficulty: ${item.difficulty} | 
+                           📦 ${item.blocks} blocks</p>
+                    </div>
+                    <div class="history-actions">
+                        <button class="btn-icon load" onclick="loadBlockchainFromHistory('${item.filename}')" title="Load blockchain này">
+                            <i class="fas fa-upload"></i>
+                        </button>
+                        <button class="btn-icon delete" onclick="deleteHistory('${item.filename}')" title="Xóa">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('') + '</div>';
+        }
+
+        async function loadBlockchainFromHistory(filename) {
+            try {
+                const response = await fetch('/load-blockchain', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ filename: filename })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    sessionId = data.session_id;
+                    document.getElementById('createSection').style.display = 'none';
+                    document.getElementById('blockchainSection').style.display = 'block';
+                    
+                    showAlert('success', `✓ ${data.message}`);
+                    updateChainStatus(data.chain_info);
+                    refreshChain();
+                    
+                    // Scroll to blockchain section
+                    document.getElementById('blockchainSection').scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    showAlert('danger', '✗ Lỗi: ' + data.error);
+                }
+            } catch (error) {
+                showAlert('danger', '✗ Lỗi kết nối: ' + error.message);
+            }
+        }
+
+        async function deleteHistory(filename) {
+            if (!confirm('Bạn có chắc muốn xóa blockchain này khỏi lịch sử?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/delete-history', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ filename: filename })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('success', '✓ Đã xóa blockchain khỏi lịch sử!');
+                    loadHistory();
+                } else {
+                    showAlert('danger', '✗ Lỗi: ' + data.error);
+                }
+            } catch (error) {
+                showAlert('danger', '✗ Lỗi kết nối: ' + error.message);
+            }
+        }
+
+        async function resetBlockchain() {
+            if (!confirm('Bạn có chắc muốn reset và tạo blockchain mới? Blockchain hiện tại sẽ bị mất nếu chưa lưu!')) {
+                return;
+            }
+
+            try {
+                if (sessionId) {
+                    await fetch('/reset-blockchain', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ session_id: sessionId })
+                    });
+                }
+
+                // Reset UI
+                sessionId = null;
+                document.getElementById('createSection').style.display = 'block';
+                document.getElementById('blockchainSection').style.display = 'none';
+                document.getElementById('alertArea').innerHTML = '';
+                document.getElementById('chainStatus').innerHTML = '';
+                
+                showAlert('success', '✓ Đã reset! Bạn có thể chọn độ khó mới và tạo blockchain mới.');
+                
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (error) {
+                showAlert('danger', '✗ Lỗi kết nối: ' + error.message);
+            }
+        }
+
+        function displayBlockchain(chain) {
+            const container = document.getElementById('blockchainContainer');
+            container.innerHTML = '';
+
+            chain.forEach(block => {
+                const blockEl = document.createElement('div');
+                blockEl.className = 'block fade-in';
+                blockEl.innerHTML = `
+                    <div class="block-header">
+                        <div class="block-title">
+                            ${block.index === 0 ? '<i class="fas fa-star"></i> Genesis Block' : `<i class="fas fa-cube"></i> Block`}
+                        </div>
+                        <div class="block-index">#${block.index}</div>
+                    </div>
+                    <div class="block-info">
+                        <div class="block-info-item">
+                            <span class="block-info-label">📅 Timestamp:</span>
+                            <span class="block-info-value">${block.datetime}</span>
+                        </div>
+                        <div class="block-info-item">
+                            <span class="block-info-label">🔐 Hash Algorithm:</span>
+                            <span class="block-info-value">${(block.hash_algorithm || 'sha256').toUpperCase()}</span>
+                        </div>
+                        <div class="block-info-item">
+                            <span class="block-info-label">📝 Data:</span>
+                            <span class="block-info-value">${block.data}</span>
+                        </div>
+                        <div class="block-info-item">
+                            <span class="block-info-label">🔗 Previous Hash:</span>
+                            <span class="block-info-value hash">${block.previous_hash.substring(0, 16)}...</span>
+                        </div>
+                        <div class="block-info-item">
+                            <span class="block-info-label">🔢 Nonce:</span>
+                            <span class="block-info-value">${block.nonce.toLocaleString()}</span>
+                        </div>
+                        <div class="block-info-item">
+                            <span class="block-info-label">🔐 Hash:</span>
+                            <span class="block-info-value hash">${block.hash}</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(blockEl);
+            });
+        }
+
+        function updateChainStatus(info) {
+            const statusEl = document.getElementById('chainStatus');
+            statusEl.innerHTML = `<span class="badge badge-primary">📊 ${info.length} Blocks | ${info.hash_algorithm?.toUpperCase() || 'SHA256'} | Difficulty: ${info.difficulty}</span>`;
+
+            const infoEl = document.getElementById('chainInfo');
+            if (infoEl) {
+                infoEl.innerHTML = `<span class="badge badge-success">${info.length} Blocks</span>`;
+            }
+        }
+
+        function showAlert(type, message) {
+            const alertArea = document.getElementById('alertArea');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} fade-in`;
+            
+            const icon = type === 'success' ? 'check-circle' : 
+                        type === 'danger' ? 'exclamation-circle' : 'info-circle';
+            
+            alert.innerHTML = `
+                <i class="fas fa-${icon}"></i>
+                <span>${message}</span>
+            `;
+            
+            alertArea.innerHTML = '';
+            alertArea.appendChild(alert);
+
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Enter key support
+        document.getElementById('blockData')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addBlock();
+            }
+        });
+
+        // ============================================================================
+        // TAB SWITCHING
+        // ============================================================================
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            if (tabName === 'blockchain') {
+                document.getElementById('blockchainTab').classList.add('active');
+                document.querySelectorAll('.nav-tab')[0].classList.add('active');
+            } else if (tabName === 'comparison') {
+                document.getElementById('comparisonTab').classList.add('active');
+                document.querySelectorAll('.nav-tab')[1].classList.add('active');
+            }
+        }
+
+        // ============================================================================
+        // HASH COMPARISON FUNCTIONS
+        // ============================================================================
+        let performanceChartInstance = null;
+
+        async function runPerformanceTest() {
+            const selectedDifficulty = document.querySelector('input[name="test_difficulty"]:checked').value;
+            const loadingEl = document.getElementById('performanceLoading');
+            const resultsEl = document.getElementById('performanceResults');
+            
+            loadingEl.style.display = 'block';
+            resultsEl.style.display = 'none';
+
+            try {
+                const response = await fetch(`/compare-algorithms?difficulty=${selectedDifficulty}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    displayPerformanceResults(data);
+                }
+            } catch (error) {
+                alert('Lỗi: ' + error.message);
+            } finally {
+                loadingEl.style.display = 'none';
+                resultsEl.style.display = 'block';
+            }
+        }
+
+        function displayPerformanceResults(data) {
+            const colors = [
+                'rgba(99, 102, 241, 0.8)',
+                'rgba(139, 92, 246, 0.8)',
+                'rgba(16, 185, 129, 0.8)',
+                'rgba(245, 158, 11, 0.8)',
+                'rgba(239, 68, 68, 0.8)'
+            ];
+            
+            const borderColors = [
+                'rgb(99, 102, 241)',
+                'rgb(139, 92, 246)',
+                'rgb(16, 185, 129)',
+                'rgb(245, 158, 11)',
+                'rgb(239, 68, 68)'
+            ];
+
+            // Update title
+            const difficultyLabels = {
+                2: 'Dễ',
+                3: 'Trung bình',
+                4: 'Khó',
+                5: 'Rất khó'
+            };
+            document.getElementById('chartTitle').textContent = 
+                `So sánh Mining Time - Difficulty = ${data.difficulty} (${difficultyLabels[data.difficulty]})`;
+
+            // Create chart
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            
+            // Destroy previous chart if exists
+            if (performanceChartInstance) {
+                performanceChartInstance.destroy();
+            }
+
+            // Create new chart
+            performanceChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.results.map(r => r.algorithm_display),
+                    datasets: [{
+                        label: 'Mining Time (seconds)',
+                        data: data.results.map(r => r.mining_time),
+                        backgroundColor: colors,
+                        borderColor: borderColors,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Time (seconds)',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Hash Algorithm',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Display algorithm cards
+            const cardsContainer = document.getElementById('algorithmCards');
+            cardsContainer.innerHTML = '<h3 style="grid-column: 1 / -1; color: var(--primary); margin-bottom: 0;">Kết quả chi tiết:</h3>';
+
+            data.results_sorted.forEach((result, index) => {
+                const isFastest = index === 0;
+                const isSlowest = index === data.results_sorted.length - 1;
+                
+                const cardColor = isFastest ? 'var(--success)' : isSlowest ? 'var(--warning)' : 'var(--primary)';
+                const badge = isFastest ? '🥇 Nhanh nhất' : isSlowest ? '🐌 Chậm nhất' : '✓ Tốt';
+                
+                const card = document.createElement('div');
+                card.style.cssText = `
+                    background: white;
+                    padding: 1.5rem;
+                    border-radius: 0.5rem;
+                    border-left: 4px solid ${cardColor};
+                    box-shadow: var(--shadow);
+                `;
+                
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <h3 style="color: ${cardColor}; margin: 0;">${result.algorithm_display}</h3>
+                        <span style="background: ${cardColor}; color: white; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.875rem;">${badge}</span>
+                    </div>
+                    <p style="margin: 0.5rem 0;"><strong>⏱️ Time:</strong> ${result.mining_time}s</p>
+                    <p style="margin: 0.5rem 0;"><strong>🔢 Nonce:</strong> ${result.nonce.toLocaleString()}</p>
+                    <p style="margin: 0.5rem 0;"><strong>📏 Hash Length:</strong> ${result.hash_bits} bits</p>
+                    <details style="margin-top: 0.5rem;">
+                        <summary style="cursor: pointer; color: var(--primary); font-weight: 600;">Xem Hash</summary>
+                        <p style="margin: 0.5rem 0; word-break: break-all; font-family: monospace; font-size: 0.75rem; background: var(--light); padding: 0.5rem; border-radius: 0.25rem;">${result.hash}</p>
+                    </details>
+                `;
+                
+                cardsContainer.appendChild(card);
+            });
+        }
+
+        async function runCollisionTest() {
+            const loadingEl = document.getElementById('collisionLoading');
+            const resultsEl = document.getElementById('collisionResults');
+            
+            loadingEl.style.display = 'block';
+            resultsEl.style.display = 'none';
+
+            try {
+                const response = await fetch('/test-collision');
+                const data = await response.json();
+
+                if (data.success) {
+                    displayCollisionResults(data.results);
+                }
+            } catch (error) {
+                alert('Lỗi: ' + error.message);
+            } finally {
+                loadingEl.style.display = 'none';
+                resultsEl.style.display = 'block';
+            }
+        }
+
+        function displayCollisionResults(results) {
+            const container = document.getElementById('collisionResultsContent');
+            container.innerHTML = '';
+
+            results.forEach(result => {
+                const card = document.createElement('div');
+                card.style.cssText = `
+                    background: white;
+                    padding: 1.5rem;
+                    border-radius: 0.5rem;
+                    margin-bottom: 1rem;
+                    border-left: 4px solid var(--primary);
+                    box-shadow: var(--shadow);
+                `;
+                
+                card.innerHTML = `
+                    <h3 style="color: var(--primary); margin-bottom: 1rem;">${result.algorithm}</h3>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <div style="background: var(--light); padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem;">
+                                <p style="font-weight: 600; margin-bottom: 0.5rem;">📝 Input 1:</p>
+                                <code style="background: white; padding: 0.5rem; display: block; border-radius: 0.25rem;">"${result.data1}"</code>
+                            </div>
+                            <div style="background: #e0f2fe; padding: 1rem; border-radius: 0.5rem;">
+                                <p style="font-weight: 600; margin-bottom: 0.5rem;">🔐 Hash 1:</p>
+                                <code style="word-break: break-all; font-size: 0.75rem; display: block;">${result.hash1}</code>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div style="background: var(--light); padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem;">
+                                <p style="font-weight: 600; margin-bottom: 0.5rem;">📝 Input 2:</p>
+                                <code style="background: white; padding: 0.5rem; display: block; border-radius: 0.25rem;">"${result.data2}"</code>
+                            </div>
+                            <div style="background: #fce7f3; padding: 1rem; border-radius: 0.5rem;">
+                                <p style="font-weight: 600; margin-bottom: 0.5rem;">🔐 Hash 2:</p>
+                                <code style="word-break: break-all; font-size: 0.75rem; display: block;">${result.hash2}</code>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 1rem; padding: 1rem; background: #dcfce7; border-radius: 0.5rem;">
+                        <p style="margin: 0; font-weight: 600;">✅ Avalanche Effect: Hash hoàn toàn khác nhau (${result.similarity}% giống nhau)</p>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
