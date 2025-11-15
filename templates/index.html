@@ -918,22 +918,96 @@
                 <!-- Collision Resistance Test -->
                 <div class="card fade-in">
                     <div class="card-header">
-                        <h2><i class="fas fa-shield-alt"></i> Test Collision Resistance</h2>
-                        <button onclick="runCollisionTest()" class="btn btn-primary">
-                            <i class="fas fa-play"></i> Chạy Test
-                        </button>
+                        <h2><i class="fas fa-shield-alt"></i> Test Collision Resistance & Avalanche Effect</h2>
                     </div>
+                    
+                    <!-- Test Scenarios -->
+                    <div style="margin-bottom: 2rem;">
+                        <h3 style="margin-bottom: 1rem;"><i class="fas fa-cog"></i> Chọn Scenario Test:</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <button onclick="setCollisionScenario('custom')" class="btn btn-primary" id="btn-custom">
+                                <i class="fas fa-edit"></i> Custom Input
+                            </button>
+                            <button onclick="setCollisionScenario('password')" class="btn btn-outline" id="btn-password">
+                                <i class="fas fa-key"></i> Password Test
+                            </button>
+                            <button onclick="setCollisionScenario('typo')" class="btn btn-outline" id="btn-typo">
+                                <i class="fas fa-spell-check"></i> Typo Test
+                            </button>
+                            <button onclick="setCollisionScenario('transaction')" class="btn btn-outline" id="btn-transaction">
+                                <i class="fas fa-money-bill"></i> Transaction Test
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Custom Input Form -->
+                    <div id="customInputForm" style="margin-bottom: 2rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                                    <i class="fas fa-font"></i> Input 1:
+                                </label>
+                                <input type="text" id="input1" class="input-field" value="Hello World" 
+                                       placeholder="Nhập text đầu tiên...">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                                    <i class="fas fa-font"></i> Input 2:
+                                </label>
+                                <input type="text" id="input2" class="input-field" value="Hello World!" 
+                                       placeholder="Nhập text thứ hai...">
+                            </div>
+                        </div>
+                        <div style="background: var(--light); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                            <p style="font-size: 0.9rem; color: var(--gray);">
+                                <i class="fas fa-info-circle"></i> 
+                                Thử thay đổi chỉ 1 ký tự giữa 2 inputs để thấy Avalanche Effect!
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Scenario Descriptions -->
+                    <div id="scenarioDesc" style="background: var(--light); padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem; display: none;">
+                        <!-- Scenario description will be inserted here -->
+                    </div>
+
+                    <button onclick="runCollisionTest()" class="btn btn-success" style="width: 100%; margin-bottom: 1rem;">
+                        <i class="fas fa-play"></i> Chạy Test Collision Resistance
+                    </button>
                     
                     <div id="collisionLoading" style="text-align: center; padding: 2rem; display: none;">
                         <span class="loading"></span>
-                        <p style="margin-top: 1rem;">Đang test collision resistance...</p>
+                        <p style="margin-top: 1rem;">Đang test collision resistance & avalanche effect...</p>
                     </div>
 
                     <div id="collisionResults" style="display: none;">
-                        <div style="background: var(--light); padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1rem;">
-                            <h3 style="margin-bottom: 1rem;">📝 Giải thích Avalanche Effect:</h3>
-                            <p>Thay đổi nhỏ trong input (thêm 1 ký tự !) sẽ tạo ra hash hoàn toàn khác. Đây là đặc tính quan trọng của hash function bảo mật.</p>
+                        <div style="background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%); 
+                                    padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem; 
+                                    border-left: 4px solid var(--primary);">
+                            <h3 style="margin-bottom: 1rem;">📝 Avalanche Effect là gì?</h3>
+                            <p style="margin-bottom: 0.5rem;">
+                                <strong>Avalanche Effect</strong> (Hiệu ứng Tuyết lở) là đặc tính quan trọng của hash function:
+                            </p>
+                            <ul style="list-style: none; padding-left: 0; margin-top: 0.5rem;">
+                                <li style="margin-bottom: 0.5rem;">
+                                    <i class="fas fa-check-circle" style="color: var(--success);"></i> 
+                                    Thay đổi 1 bit input → ~50% bits output thay đổi
+                                </li>
+                                <li style="margin-bottom: 0.5rem;">
+                                    <i class="fas fa-check-circle" style="color: var(--success);"></i> 
+                                    Không thể dự đoán hash từ input tương tự
+                                </li>
+                                <li>
+                                    <i class="fas fa-check-circle" style="color: var(--success);"></i> 
+                                    Bảo vệ chống collision attacks
+                                </li>
+                            </ul>
                         </div>
+                        
+                        <div id="inputComparison" style="margin-bottom: 1.5rem;">
+                            <!-- Input comparison will be shown here -->
+                        </div>
+                        
                         <div id="collisionResultsContent">
                             <!-- Collision test results will be inserted here -->
                         </div>
@@ -1652,5 +1726,8 @@
             });
         }
     </script>
+    
+    <!-- Load collision test enhanced features -->
+    <script src="{{ url_for('static', filename='collision-test.js') }}"></script>
 </body>
 </html>
