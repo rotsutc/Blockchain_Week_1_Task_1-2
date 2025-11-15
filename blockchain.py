@@ -8,6 +8,30 @@ Một implementation đầy đủ của blockchain với các tính năng:
 - Chain validation để kiểm tra tính toàn vẹn
 - Demo application với nhiều tính năng
 
+Các khái niệm chính:
+--------------------
+1. BLOCK: Đơn vị cơ bản của blockchain, chứa:
+   - Data (transactions, messages, etc.)
+   - Hash của chính nó
+   - Hash của block trước đó (previous_hash)
+   - Nonce (số dùng cho Proof-of-Work)
+   - Timestamp và index
+
+2. BLOCKCHAIN: Chuỗi các blocks liên kết với nhau:
+   - Mỗi block chứa hash của block trước
+   - Thay đổi 1 block → thay đổi tất cả blocks sau nó
+   - Rất khó để giả mạo do Proof-of-Work
+
+3. PROOF-OF-WORK (PoW): Cơ chế bảo mật:
+   - Miner phải tìm nonce sao cho hash thỏa mãn điều kiện
+   - Ví dụ: Hash phải bắt đầu với "0000" (difficulty = 4)
+   - Tốn computational power → khó để attack
+
+4. HASH: Cryptographic hash function:
+   - Input khác nhau → Output hoàn toàn khác nhau
+   - One-way: Không thể reverse
+   - Deterministic: Cùng input → Cùng output
+   - Avalanche effect: Thay đổi 1 bit → Thay đổi ~50% output
 """
 
 import hashlib
@@ -17,6 +41,7 @@ from datetime import datetime
 from typing import List, Dict, Any, Literal
 
 # Định nghĩa các thuật toán hash được hỗ trợ
+# Type hint để IDE có thể autocomplete và type check
 HashAlgorithm = Literal["sha256", "sha512", "sha3-256", "sha3-512", "blake2b"]
 
 
@@ -62,17 +87,24 @@ class Block:
         Hash được tính dựa trên tất cả các attributes của block:
         index, timestamp, data, previous_hash, và nonce
         
+        *** ĐÂY LÀ TRÁI TIM CỦA BLOCKCHAIN ***
+        - Hash là "fingerprint" duy nhất của block
+        - Thay đổi bất kỳ thông tin nào → Hash thay đổi hoàn toàn
+        - Hash phụ thuộc vào previous_hash → Tạo chuỗi liên kết
+        - Nonce được thay đổi trong mining để tìm hash hợp lệ
+        
         Hỗ trợ các thuật toán:
-        - SHA-256: Được Bitcoin sử dụng
-        - SHA-512: Phiên bản mạnh hơn của SHA-2
+        - SHA-256: Được Bitcoin sử dụng, 256-bit output
+        - SHA-512: Phiên bản mạnh hơn của SHA-2, 512-bit output
         - SHA3-256: Thuật toán Keccak, được Ethereum sử dụng
         - SHA3-512: Phiên bản mạnh hơn của SHA-3
         - BLAKE2b: Nhanh hơn MD5, an toàn như SHA-3
         
         Returns:
-            str: Hash của block dưới dạng hex string
+            str: Hash của block dưới dạng hex string (hexadecimal)
         """
         # Kết hợp tất cả thông tin của block thành một string
+        # sort_keys=True để đảm bảo order nhất quán
         block_string = json.dumps({
             "index": self.index,
             "timestamp": self.timestamp,
@@ -82,6 +114,8 @@ class Block:
         }, sort_keys=True)
         
         # Tính hash theo thuật toán được chọn
+        # .encode() chuyển string thành bytes
+        # .hexdigest() chuyển hash thành hex string
         if self.hash_algorithm == "sha256":
             return hashlib.sha256(block_string.encode()).hexdigest()
         elif self.hash_algorithm == "sha512":
@@ -93,7 +127,7 @@ class Block:
         elif self.hash_algorithm == "blake2b":
             return hashlib.blake2b(block_string.encode()).hexdigest()
         else:
-            # Fallback to SHA-256
+            # Fallback to SHA-256 nếu thuật toán không được hỗ trợ
             return hashlib.sha256(block_string.encode()).hexdigest()
     
     def __str__(self) -> str:
@@ -211,79 +245,179 @@ class Blockchain:
         """
         Mine một block sử dụng Proof-of-Work algorithm
         
-        PoW yêu cầu tìm một nonce sao cho hash của block bắt đầu
-        với một số lượng số 0 nhất định (difficulty)
+        *** PROOF-OF-WORK (PoW) - TRÁI TIM CỦA BLOCKCHAIN ***
         
-        Ví dụ: Với difficulty=4, hash phải bắt đầu với "0000"
+        Cách hoạt động:
+        ----------------
+        1. Tạo target string: "0" * difficulty
+           - Ví dụ: difficulty=4 → target="0000"
+        
+        2. Loop vô tận:
+           - Tăng nonce lên 1
+           - Tính hash của block với nonce mới
+           - Kiểm tra hash có bắt đầu với target không?
+           - Nếu có → Tìm thấy! (block đã mined)
+           - Nếu không → Tiếp tục loop
+        
+        3. Khi tìm thấy:
+           - Block có hash hợp lệ
+           - Đã chứng minh đã dùng computational power
+           - Block sẵn sàng được thêm vào chain
+        
+        Tại sao cần PoW?
+        ----------------
+        - Bảo mật: Attacker phải redo tất cả PoW của chain → Rất khó
+        - Decentralization: Ai cũng có thể mine, không cần trust
+        - Incentive: Miner được thưởng khi mine thành công
+        - Consensus: Longest chain = valid chain
+        
+        Độ khó (Difficulty):
+        --------------------
+        - Difficulty = 1: Hash bắt đầu với "0" (~16 tries)
+        - Difficulty = 2: Hash bắt đầu với "00" (~256 tries)
+        - Difficulty = 3: Hash bắt đầu với "000" (~4,096 tries)
+        - Difficulty = 4: Hash bắt đầu với "0000" (~65,536 tries)
+        - Mỗi tăng 1 → Tăng ~16x thời gian (vì hex = base 16)
+        
+        Bitcoin:
+        --------
+        - Difficulty tự động điều chỉnh mỗi 2016 blocks
+        - Target: 1 block mỗi 10 phút
+        - Hiện tại: ~19-20 leading zeros (cực kỳ khó!)
         
         Args:
             block: Block cần mine
         """
+        # Tạo target string: chuỗi các số 0
+        # Hash phải bắt đầu với string này
         target = "0" * self.difficulty
         start_time = time.time()
         
         print(f"\n⛏️  Mining block #{block.index}...")
         print(f"   Target: {target}...")
+        print(f"   Difficulty: {self.difficulty} leading zeros required")
         
-        # Tìm nonce để hash thỏa mãn điều kiện
+        # Proof-of-Work loop
+        # Tìm nonce sao cho hash thỏa mãn điều kiện
         while not block.hash.startswith(target):
-            block.nonce += 1
-            block.hash = block.calculate_hash()
+            block.nonce += 1  # Tăng nonce
+            block.hash = block.calculate_hash()  # Tính hash mới
             
             # Hiển thị tiến trình mỗi 100,000 lần thử
+            # Để user biết mining đang diễn ra
             if block.nonce % 100000 == 0:
                 print(f"   Trying nonce: {block.nonce:,} - Hash: {block.hash[:16]}...")
         
+        # Đã tìm thấy hash hợp lệ!
         elapsed_time = time.time() - start_time
-        print(f"✓ Block mined!")
-        print(f"   Nonce: {block.nonce:,}")
+        print(f"✓ Block mined successfully!")
+        print(f"   Nonce found: {block.nonce:,}")
         print(f"   Hash: {block.hash}")
-        print(f"   Time: {elapsed_time:.2f} seconds")
+        print(f"   Mining time: {elapsed_time:.2f} seconds")
+        
+        # Tính hash rate (tránh chia cho 0 khi mining quá nhanh)
+        if elapsed_time > 0:
+            print(f"   Hash rate: {block.nonce/elapsed_time:,.0f} hashes/second")
+        else:
+            print(f"   Hash rate: Very fast (< 0.01s)")
     
     def is_chain_valid(self) -> bool:
         """
         Kiểm tra tính hợp lệ của toàn bộ blockchain
         
-        Validation checks:
-        1. Hash của mỗi block phải đúng (tính lại và so sánh)
-        2. Previous_hash phải trùng với hash của block trước
-        3. Hash phải thỏa mãn difficulty (PoW)
+        *** VALIDATION - BẢO MẬT BLOCKCHAIN ***
+        
+        Đây là cơ chế quan trọng nhất để đảm bảo:
+        - Blockchain không bị giả mạo (tampered)
+        - Tất cả blocks đều hợp lệ
+        - Chain integrity được duy trì
+        
+        3 Validation Checks:
+        --------------------
+        
+        CHECK 1: Hash Validity
+        - Recalculate hash của mỗi block
+        - So sánh với hash đã lưu
+        - Nếu khác → Block đã bị thay đổi!
+        - Ví dụ: Ai đó thay đổi data nhưng không update hash
+        
+        CHECK 2: Chain Linkage
+        - Kiểm tra previous_hash của block hiện tại
+        - Phải match với hash của block trước
+        - Nếu không match → Chain bị break!
+        - Ví dụ: Ai đó insert hoặc remove block
+        
+        CHECK 3: Proof-of-Work
+        - Kiểm tra hash có satisfy difficulty requirement không
+        - Hash phải bắt đầu với số lượng zeros đúng
+        - Nếu không → Block chưa được mine properly!
+        - Ví dụ: Ai đó tạo fake block không qua PoW
+        
+        Tại sao blockchain an toàn?
+        ---------------------------
+        1. Thay đổi 1 block:
+           - Hash của block đó thay đổi
+           - Previous_hash của block tiếp theo không match
+           - Validation FAIL!
+        
+        2. Để giả mạo thành công, attacker phải:
+           - Thay đổi block
+           - Recalculate hash (tốn thời gian do PoW)
+           - Thay đổi ALL blocks sau nó (rất khó!)
+           - Làm nhanh hơn network (gần như không thể!)
+        
+        3. Longest chain rule:
+           - Honest chain grow nhanh hơn (nhiều miners)
+           - Attacker's chain ngắn hơn → Bị reject
         
         Returns:
-            bool: True nếu chain hợp lệ, False nếu không
+            bool: True nếu chain hợp lệ, False nếu phát hiện vấn đề
         """
         print("\n🔍 Validating blockchain...")
+        print(f"   Checking {len(self.chain)} blocks...")
         
-        # Bỏ qua genesis block, bắt đầu từ block 1
+        # Bỏ qua genesis block (block 0), bắt đầu từ block 1
+        # Genesis block không có previous block để validate
         for i in range(1, len(self.chain)):
             current_block = self.chain[i]
             previous_block = self.chain[i - 1]
             
-            # Check 1: Hash của block có đúng không?
-            if current_block.hash != current_block.calculate_hash():
-                print(f"✗ Block #{i}: Hash không hợp lệ!")
-                print(f"   Expected: {current_block.calculate_hash()}")
-                print(f"   Got: {current_block.hash}")
+            # CHECK 1: Hash của block có đúng không?
+            # Recalculate hash và compare
+            recalculated_hash = current_block.calculate_hash()
+            if current_block.hash != recalculated_hash:
+                print(f"\n✗ Block #{i}: Hash không hợp lệ!")
+                print(f"   Expected (recalculated): {recalculated_hash}")
+                print(f"   Got (stored): {current_block.hash}")
+                print(f"   → Block data might have been tampered!")
                 return False
             
-            # Check 2: Previous hash có khớp không?
+            # CHECK 2: Previous hash có khớp không?
+            # Link giữa các blocks phải đúng
             if current_block.previous_hash != previous_block.hash:
-                print(f"✗ Block #{i}: Previous hash không khớp!")
+                print(f"\n✗ Block #{i}: Previous hash không khớp!")
                 print(f"   Expected: {previous_block.hash}")
                 print(f"   Got: {current_block.previous_hash}")
+                print(f"   → Chain linkage broken!")
                 return False
             
-            # Check 3: Hash có thỏa mãn difficulty không?
+            # CHECK 3: Hash có thỏa mãn difficulty không?
+            # Đảm bảo block đã được mine properly
             target = "0" * self.difficulty
             if not current_block.hash.startswith(target):
-                print(f"✗ Block #{i}: Hash không thỏa mãn difficulty!")
-                print(f"   Required: {target}...")
+                print(f"\n✗ Block #{i}: Hash không thỏa mãn difficulty!")
+                print(f"   Required: {target}... ({self.difficulty} leading zeros)")
                 print(f"   Got: {current_block.hash[:len(target)]}...")
+                print(f"   → Block was not properly mined!")
                 return False
             
-            print(f"✓ Block #{i} is valid")
+            # Block này hợp lệ
+            print(f"   ✓ Block #{i} is valid")
         
-        print("✓ Blockchain is completely valid!")
+        # Tất cả blocks đều hợp lệ!
+        print("\n✓ Blockchain is completely valid!")
+        print(f"   All {len(self.chain)} blocks passed validation")
+        print(f"   Chain integrity: INTACT")
         return True
     
     def get_chain_info(self) -> Dict:
@@ -330,9 +464,41 @@ def demonstrate_tampering(blockchain: Blockchain) -> None:
     """
     Demo về việc blockchain chống lại tampering (giả mạo dữ liệu)
     
-    Minh họa:
-    1. Thay đổi data của một block giữa chain
-    2. Validate chain để phát hiện giả mạo
+    *** DEMO: TẠI SAO BLOCKCHAIN AN TOÀN? ***
+    
+    Scenario này minh họa:
+    -----------------------
+    1. Setup:
+       - Có một blockchain với ít nhất 3 blocks
+       - Tất cả blocks đều valid
+    
+    2. Attack:
+       - Attacker thay đổi data của Block #1 (giữa chain)
+       - KHÔNG recalculate hash (vì không biết nonce)
+       - Hy vọng không ai phát hiện
+    
+    3. Detection:
+       - Chạy validation
+       - Blockchain phát hiện ngay lập tức!
+       - Lý do: Hash không match với data mới
+    
+    4. Result:
+       - Chain bị mark là INVALID
+       - Attacker FAIL!
+    
+    Bài học:
+    --------
+    - Không thể thay đổi data mà không bị phát hiện
+    - Hash function là "tamper-evident seal"
+    - PoW làm việc recalculate hash rất tốn kém
+    - Chain càng dài → càng khó để attack
+    
+    Real-world application:
+    -----------------------
+    - Medical records: Không thể alter patient data
+    - Supply chain: Không thể fake product origin
+    - Voting systems: Không thể change votes
+    - Financial records: Không thể modify transactions
     
     Args:
         blockchain: Blockchain để demo
@@ -341,39 +507,52 @@ def demonstrate_tampering(blockchain: Blockchain) -> None:
     print("DEMO: TAMPERING DETECTION")
     print("="*70)
     
+    # Cần ít nhất 3 blocks cho demo có ý nghĩa
     if len(blockchain.chain) < 3:
-        print("Need at least 3 blocks for this demo")
+        print("⚠️  Need at least 3 blocks for this demo")
+        print("   Please add more blocks first!")
         return
     
-    # Lưu dữ liệu gốc
+    # Lưu dữ liệu gốc để có thể show comparison
     original_data = blockchain.chain[1].data
     original_hash = blockchain.chain[1].hash
     
     print(f"\n📝 Original Block #1 data: {original_data}")
     print(f"   Original hash: {original_hash[:16]}...")
     
-    # Validation trước khi thay đổi
-    print("\n--- Validating BEFORE tampering ---")
+    # STEP 1: Validation trước khi thay đổi
+    print("\n--- STEP 1: Validating BEFORE tampering ---")
     is_valid_before = blockchain.is_chain_valid()
+    print(f"   Result: {'✓ VALID' if is_valid_before else '✗ INVALID'}")
     
-    # Giả mạo dữ liệu
-    print("\n⚠️  TAMPERING: Changing data in Block #1...")
+    # STEP 2: Giả mạo dữ liệu (ATTACK!)
+    print("\n--- STEP 2: TAMPERING ATTACK ---")
+    print("⚠️  Attacker is changing data in Block #1...")
     blockchain.chain[1].data = "HACKED DATA - This has been modified!"
     print(f"   New data: {blockchain.chain[1].data}")
     print(f"   Hash remains: {blockchain.chain[1].hash[:16]}... (unchanged)")
+    print("   ↑ Attacker didn't recalculate hash (too expensive!)")
     
-    # Validation sau khi thay đổi
-    print("\n--- Validating AFTER tampering ---")
+    # STEP 3: Validation sau khi thay đổi (DETECTION!)
+    print("\n--- STEP 3: Validating AFTER tampering ---")
     is_valid_after = blockchain.is_chain_valid()
+    print(f"   Result: {'✓ VALID' if is_valid_after else '✗ INVALID'}")
     
-    # Khôi phục dữ liệu gốc
+    # Khôi phục dữ liệu gốc (clean up)
     blockchain.chain[1].data = original_data
     blockchain.chain[1].hash = original_hash
     
-    print("\n📊 Result:")
+    # Summary
+    print("\n" + "="*70)
+    print("📊 DEMO SUMMARY")
+    print("="*70)
     print(f"   Valid before tampering: {is_valid_before}")
-    print(f"   Valid after tampering: {is_valid_after}")
-    print("\n💡 Conclusion: Blockchain successfully detected the tampering!")
+    print(f"   Valid after tampering:  {is_valid_after}")
+    print(f"   Tampering detected:     {not is_valid_after}")
+    print("\n💡 CONCLUSION:")
+    print("   ✓ Blockchain successfully detected the tampering!")
+    print("   ✓ Data integrity is guaranteed by hash linkage!")
+    print("   ✓ This is why blockchain is called 'immutable'!")
     print("="*70)
 
 
